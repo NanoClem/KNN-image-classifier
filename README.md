@@ -1,2 +1,2 @@
-# KNN-image-classifier
-An implementation of the KNN algorithm applied to image classification.
+# KNN-wine-classifier
+An implementation of the KNN algorithm applied to wines dataset.
