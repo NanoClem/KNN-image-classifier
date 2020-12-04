@@ -1,7 +1,9 @@
 # %%
+from tqdm import tqdm
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+
 
 
 # %%
@@ -91,6 +93,10 @@ if __name__ == "__main__":
     X = data.drop('target', axis=1)
     Y = data.target
 # %%
+    # explore our dataset
+    from knn_plots import corrMatrix
+    corrMatrix(X)
+# %%
     # split data, 75% train / 25% test
     X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.25, random_state=1, shuffle=True)
 # %%
@@ -107,4 +113,17 @@ if __name__ == "__main__":
     # computing accuracy of the model
     accuracy = accuracy_score(Y_test, predictions)
     print("KNN accuracy score : {}".format(accuracy))
+# %%
+    # observe the effects of varying k
+    from knn_plots import k_varying_effect
+
+    min, max   = 1, 100
+    p = 2
+    accuracies = []
+
+    for k in tqdm(range(min, max)):
+        predictions = knn(X_train, X_test, Y_train, k, p)
+        accuracies.append(accuracy_score(Y_test, predictions))
+
+    k_varying_effect(accuracies, min, max)
 # %%
