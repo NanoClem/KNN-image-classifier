@@ -5,11 +5,11 @@ import pandas as pd
 
 
 def corrMatrix(df: pd.DataFrame):
-    """[summary]
+    """Plot the correlation matrix of the given dataframe.
     
     Parameters
     -----
-        df (pd.DataFrame) -- [description]
+        df (pd.DataFrame) -- dataframe from which to plot the matrix
     """
     # get correlation matrix
     corr = df.corr()
@@ -31,13 +31,13 @@ def corrMatrix(df: pd.DataFrame):
 
 
 def k_varying_effect(accuracies: list, min: int=1, max: int=100):
-    """[summary]
+    """Plot the evolution of the k parameter in knn.
     
     Parameters
     -----
-        accuracies (list) -- [description]
-        min (int) -- [description] (default: 1)
-        max (int) -- [description] (default: 100)
+        accuracies (list) -- list of computed accuracies for different values of k
+        min (int) -- min value of k (default: 1)
+        max (int) -- max value of k (default: 100)
     """
     fig, ax = plt.subplots(figsize=(8,6))
     
