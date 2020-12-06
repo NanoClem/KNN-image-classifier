@@ -94,8 +94,13 @@ if __name__ == "__main__":
     Y = data.target
 # %%
     # explore our dataset
+    print(X.describe(), '\n')
+    data.groupby('target').size()   # showing classes distribution
+
+    # correlation matrix
     from knn_plots import corrMatrix
     corrMatrix(X)
+
 # %%
     # split data, 75% train / 25% test
     X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.25, random_state=1, shuffle=True)
@@ -104,15 +109,15 @@ if __name__ == "__main__":
     scaler  = StandardScaler()
     X_train = scaler.fit_transform(X_train)
     X_test  = scaler.transform(X_test)
+
 # %%
     # compute KNN
     k = 5
     p = 2
     predictions = knn(X_train, X_test, Y_train, k, p)
-# %%
-    # computing accuracy of the model
     accuracy = accuracy_score(Y_test, predictions)
     print("KNN accuracy score : {}".format(accuracy))
+    
 # %%
     # observe the effects of varying k
     from knn_plots import k_varying_effect
@@ -126,4 +131,3 @@ if __name__ == "__main__":
         accuracies.append(accuracy_score(Y_test, predictions))
 
     k_varying_effect(accuracies, min, max)
-# %%
