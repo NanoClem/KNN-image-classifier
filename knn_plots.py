@@ -30,19 +30,36 @@ def corrMatrix(df: pd.DataFrame):
 
 
 
-def k_varying_effect(accuracies: list, min: int=1, max: int=100):
+def k_varying_effect(accuracies: list, kmax: int=100):
     """Plot the evolution of the k parameter in knn.
     
     Parameters
     -----
         accuracies (list) -- list of computed accuracies for different values of k
-        min (int) -- min value of k (default: 1)
         max (int) -- max value of k (default: 100)
     """
     fig, ax = plt.subplots(figsize=(8,6))
     
-    ax.plot(range(min, max), accuracies)
+    ax.plot(range(1, kmax), accuracies)
     ax.set_xlabel('Nb of Nearest Neighbors (k)')
+    ax.set_ylabel('Accuracy (%)')
+
+    plt.show()
+
+
+
+def cross_varrying_effect(accuracies: list, nMax: int=50):
+    """[summary]
+    
+    Parameters
+    -----
+        accuracies (list) -- [description]
+        max (int) -- [description] (default: 50)
+    """
+    fig, ax = plt.subplots(figsize=(8,6))
+
+    ax.plot(range(2, nMax), accuracies)
+    ax.set_xlabel('Number of chunks per validation (n)')
     ax.set_ylabel('Accuracy (%)')
 
     plt.show()

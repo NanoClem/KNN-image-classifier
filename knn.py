@@ -1,12 +1,7 @@
-# %%
-from tqdm import tqdm
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 
 
-
-# %%
 def minkowski(a: list, b: list, p: int=1) -> float:
     """Compute the Minkowski distance between 2 data points.
     Each data points should have the same dimension.
@@ -35,7 +30,6 @@ def minkowski(a: list, b: list, p: int=1) -> float:
     
 
 
-#%%
 def knn(X_train: np.ndarray, X_test: np.ndarray, Y_train: pd.DataFrame, k: int=3, p: int=1) -> list:
     """[summary]
     
@@ -73,61 +67,3 @@ def knn(X_train: np.ndarray, X_test: np.ndarray, Y_train: pd.DataFrame, k: int=3
             predictions.append(predict)
 
     return predictions
-# %%
-
-
-if __name__ == "__main__":
-
-    from sklearn.datasets import load_wine
-    from sklearn.model_selection import train_test_split
-    from sklearn.preprocessing import StandardScaler
-    from sklearn.metrics import accuracy_score
-
-    # load the wine dataset
-    wines = load_wine()
-    data  = pd.DataFrame(data=wines.data, columns=wines.feature_names)
-    data['target'] = wines.target
-
-# %%
-    # separating data and target
-    X = data.drop('target', axis=1)
-    Y = data.target
-# %%
-    # explore our dataset
-    print(X.describe(), '\n')
-    data.groupby('target').size()   # showing classes distribution
-
-    # correlation matrix
-    from knn_plots import corrMatrix
-    corrMatrix(X)
-
-# %%
-    # split data, 75% train / 25% test
-    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.25, random_state=1, shuffle=True)
-# %%
-    # avoiding data leakage
-    scaler  = StandardScaler()
-    X_train = scaler.fit_transform(X_train)
-    X_test  = scaler.transform(X_test)
-
-# %%
-    # compute KNN
-    k = 5
-    p = 2
-    predictions = knn(X_train, X_test, Y_train, k, p)
-    accuracy = accuracy_score(Y_test, predictions)
-    print("KNN accuracy score : {}".format(accuracy))
-    
-# %%
-    # observe the effects of varying k
-    from knn_plots import k_varying_effect
-
-    min, max   = 1, 100
-    p = 2
-    accuracies = []
-
-    for k in tqdm(range(min, max)):
-        predictions = knn(X_train, X_test, Y_train, k, p)
-        accuracies.append(accuracy_score(Y_test, predictions))
-
-    k_varying_effect(accuracies, min, max)
