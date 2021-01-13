@@ -31,7 +31,7 @@ def minkowski(a: list, b: list, p: int=1) -> float:
 
 
 def knn(X_train: np.ndarray, X_test: np.ndarray, Y_train: pd.DataFrame, k: int=3, p: int=1) -> list:
-    """[summary]
+    """KNN algorithm made from scratch.
     
     Parameters
     -----
