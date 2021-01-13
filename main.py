@@ -1,119 +1,62 @@
-# %%
 from functools import reduce
 from tqdm import tqdm
 
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import accuracy_score
-from sklearn.utils import shuffle
-
-from knn import knn
+from statistics import NormalDist
 
 
 
-def scale_transform(X_train: list, X_test: list) -> list:
-    """Applies a scale transformation to data to avoid data leakage.
+def confidence_interval(data: list, confidence: float=0.95) -> list:
+    """Compute the confidence interval for a given dataset.
     
     Parameters
     -----
-        X_train (list) -- training data
-        X_test (list) -- test data
-
-    Returns
-    -----
-        list -- both transformed datasets (train / test)
-    """
-    scaler  = StandardScaler()
-    return scaler.fit_transform(X_train), scaler.transform(X_test)
-
-
-
-def train_test_validation(dataset: pd.DataFrame, test_size: float=0.25, k: int=3, p: int=2) -> float:
-    """[summary]
+        data (list) -- dataset
+        confidence (float) -- confidence value, should be in [0.90, 0.95, 0.99] (default: 0.95)
     
-    Parameters
+    Raises
     -----
-        dataset (pd.DataFrame) -- [description]
-        test_size (float) -- [description] (default: 0.25)
-        k (int) -- [description] (default: 3)
-        p (int) -- [description] (default: 2)
+        ValueError -- the given confidence value is not among [0.90, 0.95, 0.99]
     
     Returns
     -----
-        float -- [description]
+        list -- resulting confidence interval
+
     """
-    X = dataset.drop('target', axis=1)
-    Y = dataset.target
-    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=test_size, random_state=1, shuffle=True)
+    acceptedConfidences = [0.90, 0.95, 0.99]
+    if confidence not in acceptedConfidences:
+        raise ValueError(f'given confidence value {confidence} not in {acceptedConfidences}')
 
-    # avoiding data leakage
-    X_train, X_test = scale_transform(X_train, X_test)
+    dist = NormalDist.from_samples(data)
+    z    = NormalDist().inv_cdf((1 + confidence) / 2.0)
+    h    = dist.stdev * z / ((len(data) - 1) ** 0.5)
 
-    # make preditions
-    predictions = knn(X_train, X_test, Y_train, k, p)
-    return accuracy_score(Y_test, predictions)
-
+    return [dist.mean - h, dist.mean + h]
 
 
-def cross_validation(dataset: pd.DataFrame, n: int=5, k: int=3, p: int=2) -> float:
-    """[summary]
-    
-    Parameters
-    -----
-        dataset (pd.DataFrame) -- [description]
-        n (int) -- [description] (default: 5)
-        k (int) -- [description] (default: 3)
-        p (int) -- [description] (default: 2)
 
-    Returns
-    -----
-        float -- [description]
-    """
-    scores = []
-    data   = shuffle(dataset, random_state=5)       # shuffle the dataset
-    chunks = np.array_split(data, n)                # split into equals chunks
-
-    for chk in chunks:
-
-        # defining train and test set
-        test  = chk
-        train = pd.concat([df for df in chunks if not df.equals(chk)])
-
-        # separating data and target
-        X_train, Y_train = train.drop('target', axis=1), train.target
-        X_test, Y_test   = test.drop('target', axis=1), test.target
-
-        # avoiding data leakage
-        X_train, X_test = scale_transform(X_train, X_test)
-
-        # make prediction for the current chunk
-        predictions = knn(X_train, X_test, Y_train, k, p)
-        accuracy    = accuracy_score(Y_test, predictions)
-        scores.append(accuracy)
-
-    sum = reduce(lambda x,y: x+y, scores)
-    return sum/len(scores)
+#==============================================================================
+#       MAIN
+#==============================================================================
 
 
-# %%
 if __name__ == "__main__":
 
     from sklearn.datasets import load_wine
-    
+    from validations import train_test_validation, cross_validation
+
+#======================================================================
+
     # load the wine dataset
     wines = load_wine()
     data  = pd.DataFrame(data=wines.data, columns=wines.feature_names)
     data['target'] = wines.target
 
-# %%
     # separating data and target
     X = data.drop('target', axis=1)
     Y = data.target
-# %%
+
     # explore our dataset
     print(X.describe(), '\n')
     print(data.groupby('target').size())   # showing classes distribution
@@ -121,7 +64,9 @@ if __name__ == "__main__":
     # correlation matrix
     from knn_plots import corrMatrix
     corrMatrix(X)
-# %%
+
+#======================================================================
+
     # KNN params
     k = 5
     p = 2
@@ -135,12 +80,14 @@ if __name__ == "__main__":
     n = 5
     cross_acc = cross_validation(data, n, k, p)
     print("KNN cross validation accuracy score : {}".format(cross_acc))
-#%%
+
+#======================================================================
+
     # search the optimal value of n for cross validation
     from knn_plots import cross_varrying_effect
 
     cross_accuracies = []
-    nMax = 50
+    nMax = 12
     k = 5
     p = 2
 
@@ -148,16 +95,24 @@ if __name__ == "__main__":
         acc = cross_validation(data, ni, k, p)
         cross_accuracies.append(acc)
 
+    cross_accuracies = list(map(lambda x: x*100, cross_accuracies))
     cross_varrying_effect(cross_accuracies, nMax)
     best_n = np.argmax(cross_accuracies) + 2
     print(f'Best cross_validation n value : {best_n}')
-    
-# %%
+
+
+    # Cross-validation confidence interval
+    confidence = 0.95
+    conf_interval = confidence_interval(cross_accuracies, confidence)
+    print(f'{confidence*100}% confidence interval for cross-validation : \n {conf_interval}')
+
+#======================================================================
+
     # observe the effects of varying k
     from knn_plots import k_varying_effect
 
     p = 2
-    kmax = 100
+    kmax = 101
     test_size = 0.25
     k_accuracies = []
 
@@ -165,7 +120,7 @@ if __name__ == "__main__":
         acc = train_test_validation(data, test_size, ki, p)
         k_accuracies.append(acc)
 
+    k_accuracies = list(map(lambda x: x*100, k_accuracies))
     k_varying_effect(k_accuracies, kmax)
     best_k = np.argmax(k_accuracies) + 1
     print(f'Best k value : {best_k}')
-# %%
