@@ -117,7 +117,7 @@ if __name__ == "__main__":
     k_accuracies = []
 
     for ki in tqdm(range(1, kmax)):
-        acc = train_test_validation(data, test_size, ki, p)
+        acc = cross_validation(data, best_n, ki, p)
         k_accuracies.append(acc)
 
     k_accuracies = list(map(lambda x: x*100, k_accuracies))
